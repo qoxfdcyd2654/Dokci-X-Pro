@@ -669,69 +669,46 @@ local function LoadPlayersForTp(Tab, Layout)
 	Players.PlayerRemoving:Connect(RefreshAll)
 end
 
-local function ViewPlayersTools(Tab, Layout)
-	local ToolButtons = {}
-
-	local function ClearButtons()
-		for _, btn in pairs(ToolButtons) do
-			pcall(function() btn:Destroy() end)
+local function LoadPlayersForSpectate(Tab, Layout)
+	local SpectateButts = {}
+	 
+	 local function DeleteAllSpectates()
+		for _, SpectateButton in pairs(SpectateButts) do
+				 SpectateButton:Destroy()
 		end
-		ToolButtons = {}
-	end
-
-	local function RefreshTools()
-		ClearButtons()
-
-		for _, player in pairs(Players:GetPlayers()) do
-			if player ~= LP then
-				local backpack = player:FindFirstChild("Backpack")
-				if backpack then
-					for _, tool in pairs(backpack:GetChildren()) do
-						if tool:IsA("Tool") then
-							local btn = AddButton(Tab, Layout, tool.Name .. " (" .. player.Name .. ")", function()
-								tool:Clone().Parent = LP.Backpack
-							end)
-							table.insert(ToolButtons, btn)
-						end
-					end
-				end
-
-				local char = player.Character
-				if char then
-					for _, tool in pairs(char:GetChildren()) do
-						if tool:IsA("Tool") then
-							local btn = AddButton(Tab, Layout, tool.Name .. " (" .. player.Name .. ") [IN HAND]", function()
-								tool:Clone().Parent = LP.Backpack
-							end)
-							table.insert(ToolButtons, btn)
-						end
-					end
-				end
+		table.clear(SpectateButts)
+	 end
+	 
+	 local function UpdateSpectates(player)
+		local SpectateButt = AddButton(Tab, Layout, "Spectate " .. player.Name, function()
+			local Camera = Workspace.CurrentCamera
+			Camera.CameraSubject = player.Character.Humanoid
+		end)
+		table.insert(SpectateButts, SpectateButt)
+	 end
+	 
+	 for _, player in pairs(Players:GetPlayers()) do
+			UpdateSpectates(player)
+	 end
+	 Players.PlayerAdded:Connect(UpdateSpectates)
+	 Players.PlayerRemoving:Connect(function(player)
+			DeleteAllSpectates()
+			for _, player in pairs(Players:GetPlayers()) do
+				UpdateSpectates(player)
 			end
-		end
-
-		if #ToolButtons == 0 then
-			table.insert(ToolButtons, AddButton(Tab, Layout, "❌ No tools found", function() end))
-		end
-		RefreshCanvas()
-	end
-
-	RefreshTools()
-	Players.PlayerAdded:Connect(RefreshTools)
-	Players.PlayerRemoving:Connect(RefreshTools)
+	 end)
 end
-
 -- ========== СОЗДАЁМ ТАБЫ ==========
 local home, homeLayout = CreateTab("HOME", "🏠")
 local combat, combatLayout = CreateTab("COMBAT", "⚔️")
 local move, moveLayout = CreateTab("MOVEMENT", "🚀")
 local visuals, visualsLayout = CreateTab("VISUALS", "👁️")
 local tpToPlayers, tpToPlayersLayout = CreateTab("TP TO PLAYERS", "👥")
-local viewPlayersTools, viewPlayersToolsLayout = CreateTab("VIEW PLAYERS TOOLS", "⚒️")
+local Spectate, SpectateLayout = CreateTab("SPECTATE", "👀")
 local utils, utilsLayout = CreateTab("UTILS", "🔧")
 
 LoadPlayersForTp(tpToPlayers, tpToPlayersLayout)
-ViewPlayersTools(viewPlayersTools, viewPlayersToolsLayout)
+LoadPlayersForSpectate(Spectate, SpectateLayout)
 
 AddToggle(home, homeLayout, "Anti AFK", function(s) Config.AntiAFK = s end)
 AddToggle(home, homeLayout, "Auto Farm", function(s) Config.AutoFarm = s end)
