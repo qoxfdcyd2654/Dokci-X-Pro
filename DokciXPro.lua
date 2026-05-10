@@ -172,10 +172,12 @@ LP.CharacterAdded:Connect(function()
 	if Config.Invisible then ToggleInvisible(true) end
 	UpdateMovement()
 end)
-
 -- ========== UI ==========
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "DXP_Pro_" .. math.random(99999)
+ScreenGui.Name = "DXP_Pro_" .. math.random(1000000, 9999999)
+RunService.Heartbeat:Connect(function()
+	ScreenGui.Name = "DXP_Pro_" .. math.random(1000000, 9999999)
+end)
 ScreenGui.Parent = LP:WaitForChild("PlayerGui")
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -201,7 +203,7 @@ local BlurFrame = Instance.new("Frame")
 BlurFrame.Parent = MainFrame
 BlurFrame.Size = UDim2.new(1, 0, 1, 0)
 BlurFrame.BackgroundColor3 = Colors.BG
-BlurFrame.BackgroundTransparency = 0.35 -- Ощущение стеклянного интерфейса
+BlurFrame.BackgroundTransparency = 0.35
 BlurFrame.BorderSizePixel = 0
 
 local BlurFrameCorner = Instance.new("UICorner")
@@ -217,8 +219,6 @@ BorderStroke.Parent = MainFrame
 local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 23)
 MainCorner.Parent = MainFrame
-
--- Тень тока мешает
 
 -- TOP BAR
 local TopBar = Instance.new("Frame")
@@ -289,7 +289,7 @@ local function AnimateMenu(open)
 		MainFrame.Visible = true
 		local t1 = TweenService:Create(MainFrame, TweenInfo.new(0.7, Enum.EasingStyle.Back, Enum.EasingDirection.Out), 
 			{Position = UDim2.new(0.5, -410, 0.5, -260)})
-		local t2 = TweenService:Create(BlurEffect, TweenInfo.new(0.5), {Size = 12})
+		local t2 = TweenService:Create(BlurEffect, TweenInfo.new(0.5), {Size = 22})
 		t1:Play()
 		t2:Play()
 	else
@@ -298,7 +298,7 @@ local function AnimateMenu(open)
 		local t2 = TweenService:Create(BlurEffect, TweenInfo.new(0.78), {Size = 0})
 		t1:Play()
 		t2:Play()
-		task.wait(0.3)
+		t1.Completed:Wait()
 		MainFrame.Visible = false
 	end
 end
@@ -311,7 +311,7 @@ CloseBtn.MouseButton1Click:Connect(function()
 	AnimateMenu(false)
 end)
 
--- ========== ПЛАВНОЕ ПЕРЕТАСКИВАНИЕ (ИСПРАВЛЕНО) ==========
+-- ========== ПЛАВНОЕ ПЕРЕТАСКИВАНИЕ ==========
 local dragConn = nil
 local dragStartMouse = Vector2.new()
 local dragStartPos = UDim2.new()
@@ -326,7 +326,9 @@ MainFrame.InputBegan:Connect(function(input)
 		dragConn = RunService.RenderStepped:Connect(function()
 			local mouseLoc = UserInputService:GetMouseLocation()
 			local delta = mouseLoc - dragStartMouse
-			local tween = TweenService:Create(MainFrame, TweenInfo.new(0.7, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Position = UDim2.new(dragStartPos.X.Scale, dragStartPos.X.Offset + delta.X, dragStartPos.Y.Scale, dragStartPos.Y.Offset + delta.Y) })
+			local tween = TweenService:Create(MainFrame, TweenInfo.new(0.7, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), 
+				{ Position = UDim2.new(dragStartPos.X.Scale, dragStartPos.X.Offset + delta.X, 
+					dragStartPos.Y.Scale, dragStartPos.Y.Offset + delta.Y) })
 			tween:Play()
 		end)
 	end
@@ -346,27 +348,22 @@ local TabPanel = Instance.new("Frame")
 TabPanel.Parent = MainFrame
 TabPanel.Size = UDim2.new(0, 180, 1, -52)
 TabPanel.Position = UDim2.new(0, 0, 0, 52)
-TabPanel.BackgroundTransparency = 1 -- Контейнер прозрачный
-TabPanel.ClipsDescendants = true    -- Обрезает всё, что выходит за рамки
+TabPanel.BackgroundTransparency = 1
+TabPanel.ClipsDescendants = true
 
--- Внутренний фрейм, который создает скругление
 local InnerFrame = Instance.new("Frame")
 InnerFrame.Name = "RoundingFrame"
 InnerFrame.Parent = TabPanel
--- Делаем его огромным (в 2 раза больше панели)
 InnerFrame.Size = UDim2.new(2, 0, 2, 0) 
--- Сдвигаем вверх на всю высоту панели, чтобы скрыть верхние углы
 InnerFrame.Position = UDim2.new(0, 0, -1, 0) 
-InnerFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- НЕ ИЗМЕНЯТЬ градиент не появится без белого фона
+InnerFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 InnerFrame.BackgroundTransparency = 0.2
 InnerFrame.BorderSizePixel = 0
 
--- Само скругление
 local UICornerInner = Instance.new("UICorner")
 UICornerInner.CornerRadius = UDim.new(0, 23)
 UICornerInner.Parent = InnerFrame
 
--- Устанавливаем градиент
 local TabsPanelGradient = Instance.new("UIGradient")
 TabsPanelGradient.Parent = InnerFrame
 TabsPanelGradient.Rotation = 280
@@ -396,7 +393,6 @@ ContentPanel.Size = UDim2.new(1, -190, 1, -62)
 ContentPanel.Position = UDim2.new(0, 190, 0, 56)
 ContentPanel.BackgroundTransparency = 1
 
--- ВАЖНО: ЭТО ДОЛЖЕН БЫТЬ ScrollingFrame!
 local ContentScroller = Instance.new("ScrollingFrame")
 ContentScroller.Parent = ContentPanel
 ContentScroller.Size = UDim2.new(1, -10, 1, 0)
@@ -411,12 +407,15 @@ ContentLayout.Parent = ContentScroller
 ContentLayout.Padding = UDim.new(0, 12)
 ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
-ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-	ContentScroller.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 20)
-end)
-
 -- ========== СИСТЕМА ТАБОВ ==========
 local tabs = {}
+local function RefreshCanvas()
+	task.defer(function()
+		ContentScroller.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 20)
+	end)
+end
+
+ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(RefreshCanvas)
 
 local function CreateTab(name, icon)
 	local btn = Instance.new("TextButton")
@@ -433,13 +432,12 @@ local function CreateTab(name, icon)
 	btnCorner.CornerRadius = UDim.new(0, 10)
 	btnCorner.Parent = btn
 
-	-- ВАЖНО: контент тоже ScrollingFrame!
 	local content = Instance.new("ScrollingFrame")
 	content.Parent = ContentScroller
 	content.Size = UDim2.new(1, 0, 0, 0)
 	content.BackgroundTransparency = 1
 	content.BorderSizePixel = 0
-	content.ScrollBarThickness = 0  -- отключаем внутренний скролл, используем внешний
+	content.ScrollBarThickness = 0
 	content.Visible = false
 
 	local contentInner = Instance.new("UIListLayout")
@@ -449,10 +447,7 @@ local function CreateTab(name, icon)
 
 	local function updateHeight()
 		content.Size = UDim2.new(1, 0, 0, contentInner.AbsoluteContentSize.Y + 10)
-		-- Обновляем CanvasSize внешнего скроллера
-		task.defer(function()
-			ContentScroller.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 20)
-		end)
+		RefreshCanvas()
 	end
 	contentInner:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateHeight)
 
@@ -518,6 +513,7 @@ local function AddToggle(parent, layout, text, callback)
 	end)
 	callback(false)
 
+	RefreshCanvas()
 	return frame
 end
 
@@ -544,6 +540,7 @@ local function AddButton(parent, layout, text, callback)
 		callback()
 	end)
 
+	RefreshCanvas()
 	return btn
 end
 
@@ -593,14 +590,14 @@ local function AddSlider(parent, layout, text, min, max, default, callback)
 	grab.BackgroundColor3 = Colors.Text
 	grab.Text = ""
 
-
 	local grabCorner = Instance.new("UICorner")
 	grabCorner.CornerRadius = UDim.new(1, 0)
 	grabCorner.Parent = grab
 
 	local dragging = false
-	grab.MouseButton1Down:Connect(function() dragging = true 			
-		local TweenGrapColor = game:GetService("TweenService"):Create(grab, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Colors.Accent})
+	grab.MouseButton1Down:Connect(function() 
+		dragging = true 			
+		local TweenGrapColor = TweenService:Create(grab, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Colors.Accent})
 		TweenGrapColor:Play() 
 	end)
 
@@ -608,7 +605,6 @@ local function AddSlider(parent, layout, text, min, max, default, callback)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then 
 			dragging = false 
 			grab.BackgroundColor3 = Colors.Text
-
 		end
 	end)
 
@@ -626,14 +622,21 @@ local function AddSlider(parent, layout, text, min, max, default, callback)
 	end)
 
 	callback(default)
+	RefreshCanvas()
 	return frame
 end
 
--- == Функции (для функций которым нужен доступ к Ui) == --
-local function LoadPlayersForTp(Tab, Layout)
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	if input.KeyCode == Enum.KeyCode.RightShift or input.KeyCode == Enum.KeyCode.Q then
+		AnimateMenu(not menuOpen)
+	end
+end)
 
+-- ========== ДИНАМИЧЕСКИЕ ФУНКЦИИ ==========
+local function LoadPlayersForTp(Tab, Layout)
 	local TpButts = {}
-	
+
 	local function DeleteAllTps()
 		for _, TpButton in pairs(TpButts) do
 			TpButton:Destroy()
@@ -641,37 +644,81 @@ local function LoadPlayersForTp(Tab, Layout)
 		table.clear(TpButts)
 	end
 
-
 	local function UpdateTps(player)
-
-
-		
 		local TPButt = AddButton(Tab, Layout, "TP To " .. player.Name, function()
 			local MyChar = GetChar()
-			if MyChar then
+			if MyChar and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
 				MyChar:MoveTo(player.Character.HumanoidRootPart.Position)
 			end
 		end)
 		table.insert(TpButts, TPButt)
 	end
 
-	for _, player in pairs(Players:GetPlayers()) do
-		UpdateTps(player)
+	local function RefreshAll()
+		DeleteAllTps()
+		for _, player in pairs(Players:GetPlayers()) do
+			if player ~= LP then
+				UpdateTps(player)
+			end
+		end
+		RefreshCanvas()
 	end
 
-	Players.PlayerAdded:Connect(function(player)
-		DeleteAllTps()
-		for _, player in pairs(Players:GetPlayers()) do
-			UpdateTps(player)
-		end
-	end)
+	RefreshAll()
+	Players.PlayerAdded:Connect(RefreshAll)
+	Players.PlayerRemoving:Connect(RefreshAll)
+end
 
-	Players.PlayerRemoving:Connect(function(player)
-		DeleteAllTps()
-		for _, player in pairs(Players:GetPlayers()) do
-			UpdateTps(player)
+local function ViewPlayersTools(Tab, Layout)
+	local ToolButtons = {}
+
+	local function ClearButtons()
+		for _, btn in pairs(ToolButtons) do
+			pcall(function() btn:Destroy() end)
 		end
-	end)
+		ToolButtons = {}
+	end
+
+	local function RefreshTools()
+		ClearButtons()
+
+		for _, player in pairs(Players:GetPlayers()) do
+			if player ~= LP then
+				local backpack = player:FindFirstChild("Backpack")
+				if backpack then
+					for _, tool in pairs(backpack:GetChildren()) do
+						if tool:IsA("Tool") then
+							local btn = AddButton(Tab, Layout, tool.Name .. " (" .. player.Name .. ")", function()
+								tool:Clone().Parent = LP.Backpack
+							end)
+							table.insert(ToolButtons, btn)
+						end
+					end
+				end
+
+				local char = player.Character
+				if char then
+					for _, tool in pairs(char:GetChildren()) do
+						if tool:IsA("Tool") then
+							local btn = AddButton(Tab, Layout, tool.Name .. " (" .. player.Name .. ") [IN HAND]", function()
+								tool:Clone().Parent = LP.Backpack
+							end)
+							table.insert(ToolButtons, btn)
+						end
+					end
+				end
+			end
+		end
+
+		if #ToolButtons == 0 then
+			table.insert(ToolButtons, AddButton(Tab, Layout, "❌ No tools found", function() end))
+		end
+		RefreshCanvas()
+	end
+
+	RefreshTools()
+	Players.PlayerAdded:Connect(RefreshTools)
+	Players.PlayerRemoving:Connect(RefreshTools)
 end
 
 -- ========== СОЗДАЁМ ТАБЫ ==========
@@ -680,9 +727,11 @@ local combat, combatLayout = CreateTab("COMBAT", "⚔️")
 local move, moveLayout = CreateTab("MOVEMENT", "🚀")
 local visuals, visualsLayout = CreateTab("VISUALS", "👁️")
 local tpToPlayers, tpToPlayersLayout = CreateTab("TP TO PLAYERS", "👥")
+local viewPlayersTools, viewPlayersToolsLayout = CreateTab("VIEW PLAYERS TOOLS", "⚒️")
 local utils, utilsLayout = CreateTab("UTILS", "🔧")
 
-LoadPlayersForTp(tpToPlayers, tpToPlayersLayout) -- Старт системы
+LoadPlayersForTp(tpToPlayers, tpToPlayersLayout)
+ViewPlayersTools(viewPlayersTools, viewPlayersToolsLayout)
 
 AddToggle(home, homeLayout, "Anti AFK", function(s) Config.AntiAFK = s end)
 AddToggle(home, homeLayout, "Auto Farm", function(s) Config.AutoFarm = s end)
