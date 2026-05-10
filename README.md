@@ -20,4 +20,4 @@ The cheat may have placeholders
 Enter this code: loadstring(game:HttpGet("https://raw.githubusercontent.com/qoxfdcyd2654/Dokci-X-Pro/refs/heads/main/DokciXPro.lua", true))()
 
 # Opened Code
-Enter this text to view opened code [https://raw.githubusercontent.com/qoxfdcyd2654/Dokci-X-Pro/refs/heads/main/DokciXPro.lua]
+Enter this url to view opened code https://raw.githubusercontent.com/qoxfdcyd2654/Dokci-X-Pro/refs/heads/main/DokciXPro.lua
