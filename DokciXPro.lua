@@ -548,7 +548,6 @@ local function AddToggle(parent, layout, text, callback)
 	end)
 
 	callback(false)
-	RefreshCanvas()
 	return frame
 end
 
@@ -575,7 +574,6 @@ local function AddButton(parent, layout, text, callback)
 		callback()
 	end)
 
-	RefreshCanvas()
 	return btn
 end
 
@@ -660,7 +658,6 @@ local function AddSlider(parent, layout, text, min, max, default, callback)
 	end)
 
 	UpdateFromPercent((default - min) / (max - min))
-	RefreshCanvas()
 	return frame
 end
 
