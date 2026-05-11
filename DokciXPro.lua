@@ -1,5 +1,5 @@
 -- ============================================
---   DXP DOKCI X PRO | ULTIMATE v4.1 (FIXED)
+--   DXP DOKCI X PRO | ULTIMATE v5.0 (FIXED)
 --          Author: Dokci
 -- ============================================
 
@@ -244,7 +244,7 @@ local Subtitle = Instance.new("TextLabel")
 Subtitle.Parent = TopBar
 Subtitle.Size = UDim2.new(0.5, 0, 1, 0)
 Subtitle.Position = UDim2.new(0, 20, 0, 17)
-Subtitle.Text = "by Dokci  •  v4.1  •  cyber edition •  2026"
+Subtitle.Text = "by Dokci  •  v5.0  •  cyber edition •  2026"
 Subtitle.TextColor3 = Colors.TextDim
 Subtitle.Font = Enum.Font.GothamMedium
 Subtitle.TextSize = 11
@@ -640,12 +640,14 @@ local function AddSlider(parent, layout, text, min, max, default, callback)
 		callback(val)
 	end
 
-	sliderBg.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			dragging = true
-			UpdateFromMouse(input.Position.X)
-		end
-	end)
+-- Клик по фону слайдера
+sliderBg.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        input.StopPropagation()  -- 👈 НЕ ДАЁМ СОБЫТИЮ ИДТИ ДАЛЬШЕ
+        dragging = true
+        UpdateFromMouse(input.Position.X)
+    end
+end)
 	
 	UserInputService.InputEnded:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
