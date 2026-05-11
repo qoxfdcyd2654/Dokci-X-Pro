@@ -491,28 +491,63 @@ local function AddToggle(parent, layout, text, callback)
 	label.TextXAlignment = Enum.TextXAlignment.Left
 	label.BackgroundTransparency = 1
 
-	local btn = Instance.new("TextButton")
-	btn.Parent = frame
-	btn.Size = UDim2.new(0, 72, 0, 32)
-	btn.Position = UDim2.new(1, -88, 0, 10)
-	btn.Text = "OFF"
-	btn.TextColor3 = Colors.Text
-	btn.BackgroundColor3 = Colors.Danger
-	btn.Font = Enum.Font.GothamBold
-	btn.TextSize = 13
-	local btnCorner = Instance.new("UICorner")
-	btnCorner.CornerRadius = UDim.new(0, 8)
-	btnCorner.Parent = btn
+	-- Фон переключателя
+	local switchBg = Instance.new("Frame")
+	switchBg.Parent = frame
+	switchBg.Size = UDim2.new(0, 72, 0, 32)
+	switchBg.Position = UDim2.new(1, -88, 0, 10)
+	switchBg.BackgroundColor3 = Colors.Danger
+	switchBg.BorderSizePixel = 0
+	local switchBgCorner = Instance.new("UICorner")
+	switchBgCorner.CornerRadius = UDim.new(1, 0)
+	switchBgCorner.Parent = switchBg
+
+	-- Круглая ручка
+	local switchThumb = Instance.new("TextButton")
+	switchThumb.Parent = switchBg
+	switchThumb.Size = UDim2.new(0, 28, 0, 28)
+	switchThumb.Position = UDim2.new(0, 2, 0, 2)
+	switchThumb.Text = ""
+	switchThumb.BackgroundColor3 = Colors.Text
+	switchThumb.BorderSizePixel = 0
+	local thumbCorner = Instance.new("UICorner")
+	thumbCorner.CornerRadius = UDim.new(1, 0)
+	thumbCorner.Parent = switchThumb
 
 	local state = false
-	btn.MouseButton1Click:Connect(function()
+	
+	local function UpdateSwitch(animated)
+		local targetPos = state and 42 or 2
+		local targetColor = state and Colors.Accent or Colors.Danger
+		
+		if animated then
+			local thumbTween = TweenService:Create(switchThumb, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+				Position = UDim2.new(0, targetPos, 0, 2)
+			})
+			local bgTween = TweenService:Create(switchBg, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+				BackgroundColor3 = targetColor
+			})
+			thumbTween:Play()
+			bgTween:Play()
+		else
+			switchThumb.Position = UDim2.new(0, targetPos, 0, 2)
+			switchBg.BackgroundColor3 = targetColor
+		end
+	end
+
+	switchThumb.MouseButton1Click:Connect(function()
 		state = not state
-		btn.Text = state and "ON" or "OFF"
-		btn.BackgroundColor3 = state and Colors.Success or Colors.Danger
+		UpdateSwitch(true)
 		callback(state)
 	end)
-	callback(false)
+	
+	switchBg.MouseButton1Click:Connect(function()
+		state = not state
+		UpdateSwitch(true)
+		callback(state)
+	end)
 
+	callback(false)
 	RefreshCanvas()
 	return frame
 end
@@ -565,15 +600,17 @@ local function AddSlider(parent, layout, text, min, max, default, callback)
 	label.TextXAlignment = Enum.TextXAlignment.Left
 	label.BackgroundTransparency = 1
 
+	-- Базовый фон слайдера (высота 12)
 	local sliderBg = Instance.new("Frame")
 	sliderBg.Parent = frame
-	sliderBg.Size = UDim2.new(1, -24, 0, 6)
-	sliderBg.Position = UDim2.new(0, 12, 0, 42)
+	sliderBg.Size = UDim2.new(1, -24, 0, 12)
+	sliderBg.Position = UDim2.new(0, 12, 0, 40)
 	sliderBg.BackgroundColor3 = Colors.BGTertiary
 	local sliderCorner = Instance.new("UICorner")
 	sliderCorner.CornerRadius = UDim.new(1, 0)
 	sliderCorner.Parent = sliderBg
 
+	-- Фиолетовая плашка (будет следовать за курсором)
 	local fill = Instance.new("Frame")
 	fill.Parent = sliderBg
 	fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
@@ -582,46 +619,56 @@ local function AddSlider(parent, layout, text, min, max, default, callback)
 	fillCorner.CornerRadius = UDim.new(1, 0)
 	fillCorner.Parent = fill
 
-	local grab = Instance.new("TextButton")
-	grab.AutoButtonColor = false
-	grab.Parent = sliderBg
-	grab.Size = UDim2.new(0, 16, 0, 16)
-	grab.Position = UDim2.new((default - min) / (max - min), -8, 0.5, -8)
-	grab.BackgroundColor3 = Colors.Text
-	grab.Text = ""
-
-	local grabCorner = Instance.new("UICorner")
-	grabCorner.CornerRadius = UDim.new(1, 0)
-	grabCorner.Parent = grab
-
 	local dragging = false
-	grab.MouseButton1Down:Connect(function() 
-		dragging = true 			
-		local TweenGrapColor = TweenService:Create(grab, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Colors.Accent})
-		TweenGrapColor:Play() 
-	end)
+	
+	local function UpdateFromMouse(mouseX)
+		local relativeX = math.clamp(mouseX - sliderBg.AbsolutePosition.X, 0, sliderBg.AbsoluteSize.X)
+		local percent = relativeX / sliderBg.AbsoluteSize.X
+		local val = min + percent * (max - min)
+		val = math.floor(val * 10) / 10
+		
+		fill.Size = UDim2.new(percent, 0, 1, 0)
+		label.Text = text .. " : " .. tostring(val)
+		callback(val)
+	end
+	
+	local function UpdateFromPercent(percent)
+		local val = min + percent * (max - min)
+		val = math.floor(val * 10) / 10
+		fill.Size = UDim2.new(percent, 0, 1, 0)
+		label.Text = text .. " : " .. tostring(val)
+		callback(val)
+	end
 
-	UserInputService.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then 
-			dragging = false 
-			grab.BackgroundColor3 = Colors.Text
+	-- Клик по фону — мгновенное перемещение
+	sliderBg.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			local mousePos = input.Position
+			UpdateFromMouse(mousePos.X)
 		end
 	end)
-
+	
+	-- Перетаскивание мышью
+	sliderBg.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragging = true
+			UpdateFromMouse(input.Position.X)
+		end
+	end)
+	
+	UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragging = false
+		end
+	end)
+	
 	UserInputService.InputChanged:Connect(function(input)
 		if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-			local mousePos = input.Position
-			local percent = math.clamp((mousePos.X - sliderBg.AbsolutePosition.X) / sliderBg.AbsoluteSize.X, 0, 1)
-			local val = min + percent * (max - min)
-			val = math.floor(val * 10) / 10
-			fill.Size = UDim2.new(percent, 0, 1, 0)
-			grab.Position = UDim2.new(percent, -8, 0.5, -8)
-			label.Text = text .. " : " .. tostring(val)
-			callback(val)
+			UpdateFromMouse(input.Position.X)
 		end
 	end)
 
-	callback(default)
+	UpdateFromPercent((default - min) / (max - min))
 	RefreshCanvas()
 	return frame
 end
