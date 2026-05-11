@@ -172,6 +172,7 @@ LP.CharacterAdded:Connect(function()
 	if Config.Invisible then ToggleInvisible(true) end
 	UpdateMovement()
 end)
+
 -- ========== UI ==========
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "DXP_Pro_" .. math.random(1000000, 9999999)
@@ -432,6 +433,7 @@ local function CreateTab(name, icon)
 	btnCorner.CornerRadius = UDim.new(0, 10)
 	btnCorner.Parent = btn
 
+	-- КОНТЕНТ С АВТО-ВЫСОТОЙ
 	local content = Instance.new("ScrollingFrame")
 	content.Parent = ContentScroller
 	content.Size = UDim2.new(1, 0, 0, 0)
@@ -439,17 +441,12 @@ local function CreateTab(name, icon)
 	content.BorderSizePixel = 0
 	content.ScrollBarThickness = 0
 	content.Visible = false
+	content.AutomaticSize = Enum.AutomaticSize.Y
 
 	local contentInner = Instance.new("UIListLayout")
 	contentInner.Parent = content
 	contentInner.Padding = UDim.new(0, 12)
 	contentInner.SortOrder = Enum.SortOrder.LayoutOrder
-
-	local function updateHeight()
-		content.Size = UDim2.new(1, 0, 0, contentInner.AbsoluteContentSize.Y + 10)
-		RefreshCanvas()
-	end
-	contentInner:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateHeight)
 
 	btn.MouseButton1Click:Connect(function()
 		for _, t in pairs(tabs) do
@@ -462,13 +459,13 @@ local function CreateTab(name, icon)
 		btn.BackgroundColor3 = Colors.Accent
 		btn.BackgroundTransparency = 0.2
 		btn.TextColor3 = Colors.Text
-		updateHeight()
+		
+		-- Принудительно обновляем CanvasSize
+		task.wait(0.05)
+		ContentScroller.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 20)
 	end)
 
 	table.insert(tabs, {btn = btn, content = content, layout = contentInner})
-
-	task.wait(0.1)
-RefreshCanvas()
 	return content, contentInner
 end
 
@@ -476,7 +473,7 @@ end
 local function AddToggle(parent, layout, text, callback)
 	local frame = Instance.new("Frame")
 	frame.Parent = parent
-	frame.Size = UDim2.new(1, 0, 0, 52)
+	frame.Size = UDim2.new(1, 0, 0, 46)
 	frame.BackgroundColor3 = Colors.BGSecondary
 	frame.BackgroundTransparency = 0.3
 	local frameCorner = Instance.new("UICorner")
@@ -498,7 +495,7 @@ local function AddToggle(parent, layout, text, callback)
 	local switchBg = Instance.new("Frame")
 	switchBg.Parent = frame
 	switchBg.Size = UDim2.new(0, 56, 0, 24)
-	switchBg.Position = UDim2.new(1, -72, 0, 14)
+	switchBg.Position = UDim2.new(1, -72, 0, 11)
 	switchBg.BackgroundColor3 = Colors.Danger
 	switchBg.BorderSizePixel = 0
 	local switchBgCorner = Instance.new("UICorner")
@@ -520,7 +517,7 @@ local function AddToggle(parent, layout, text, callback)
 	local state = false
 	
 	local function UpdateSwitch(animated)
-		local targetPos = state and 32 or 2
+		local targetPos = state and 34 or 2
 		local targetColor = state and Colors.Accent or Colors.Danger
 		
 		if animated then
@@ -613,7 +610,7 @@ local function AddSlider(parent, layout, text, min, max, default, callback)
 	sliderCorner.CornerRadius = UDim.new(1, 0)
 	sliderCorner.Parent = sliderBg
 
-	-- Фиолетовая плашка (будет следовать за курсором)
+	-- Фиолетовая плашка
 	local fill = Instance.new("Frame")
 	fill.Parent = sliderBg
 	fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
@@ -643,15 +640,6 @@ local function AddSlider(parent, layout, text, min, max, default, callback)
 		callback(val)
 	end
 
-	-- Клик по фону — мгновенное перемещение
-	sliderBg.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			local mousePos = input.Position
-			UpdateFromMouse(mousePos.X)
-		end
-	end)
-	
-	-- Перетаскивание мышью
 	sliderBg.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
 			dragging = true
@@ -722,32 +710,36 @@ end
 local function LoadPlayersForSpectate(Tab, Layout)
 	local SpectateButts = {}
 	 
-	 local function DeleteAllSpectates()
+	local function DeleteAllSpectates()
 		for _, SpectateButton in pairs(SpectateButts) do
-				 SpectateButton:Destroy()
+			SpectateButton:Destroy()
 		end
 		table.clear(SpectateButts)
-	 end
+	end
 	 
-	 local function UpdateSpectates(player)
+	local function UpdateSpectates(player)
 		local SpectateButt = AddButton(Tab, Layout, "Spectate " .. player.Name, function()
 			local Camera = Workspace.CurrentCamera
-			Camera.CameraSubject = player.Character.Humanoid
+			Camera.CameraSubject = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
 		end)
 		table.insert(SpectateButts, SpectateButt)
-	 end
+	end
 	 
-	 for _, player in pairs(Players:GetPlayers()) do
-			UpdateSpectates(player)
-	 end
-	 Players.PlayerAdded:Connect(UpdateSpectates)
-	 Players.PlayerRemoving:Connect(function(player)
-			DeleteAllSpectates()
-			for _, player in pairs(Players:GetPlayers()) do
+	local function RefreshAll()
+		DeleteAllSpectates()
+		for _, player in pairs(Players:GetPlayers()) do
+			if player ~= LP then
 				UpdateSpectates(player)
 			end
-	 end)
+		end
+		RefreshCanvas()
+	end
+
+	RefreshAll()
+	Players.PlayerAdded:Connect(RefreshAll)
+	Players.PlayerRemoving:Connect(RefreshAll)
 end
+
 -- ========== СОЗДАЁМ ТАБЫ ==========
 local home, homeLayout = CreateTab("HOME", "🏠")
 local combat, combatLayout = CreateTab("COMBAT", "⚔️")
@@ -787,7 +779,6 @@ AddToggle(visuals, visualsLayout, "Fullbright", ToggleFullbright)
 AddButton(utils, utilsLayout, "Rejoin (Teleport)", function()
 	game:GetService("TeleportService"):Teleport(game.PlaceId, LP)
 end)
-
 
 -- Активируем первую вкладку
 if tabs[1] then
