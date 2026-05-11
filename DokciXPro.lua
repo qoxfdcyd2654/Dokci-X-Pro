@@ -539,11 +539,13 @@ local function AddToggle(parent, layout, text, callback)
 		callback(state)
 	end)
 	
-	switchBg.MouseButton1Click:Connect(function()
+switchBg.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
 		state = not state
 		UpdateSwitch(true)
 		callback(state)
-	end)
+	end
+end)
 
 	callback(false)
 	task.wait(0.05)
