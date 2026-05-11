@@ -491,7 +491,6 @@ local function AddToggle(parent, layout, text, callback)
 	label.TextXAlignment = Enum.TextXAlignment.Left
 	label.BackgroundTransparency = 1
 
-	-- Фон переключателя
 	local switchBg = Instance.new("Frame")
 	switchBg.Parent = frame
 	switchBg.Size = UDim2.new(0, 56, 0, 24)
@@ -502,7 +501,6 @@ local function AddToggle(parent, layout, text, callback)
 	switchBgCorner.CornerRadius = UDim.new(1, 0)
 	switchBgCorner.Parent = switchBg
 
-	-- Круглая ручка
 	local switchThumb = Instance.new("TextButton")
 	switchThumb.Parent = switchBg
 	switchThumb.Size = UDim2.new(0, 20, 0, 20)
@@ -548,6 +546,8 @@ local function AddToggle(parent, layout, text, callback)
 	end)
 
 	callback(false)
+	task.wait(0.05)
+	RefreshCanvas()  -- 👈 КЛЮЧЕВОЕ
 	return frame
 end
 
@@ -598,7 +598,6 @@ local function AddSlider(parent, layout, text, min, max, default, callback)
 	label.TextXAlignment = Enum.TextXAlignment.Left
 	label.BackgroundTransparency = 1
 
-	-- Базовый фон слайдера (высота 12)
 	local sliderBg = Instance.new("Frame")
 	sliderBg.Parent = frame
 	sliderBg.Size = UDim2.new(1, -24, 0, 12)
@@ -608,7 +607,6 @@ local function AddSlider(parent, layout, text, min, max, default, callback)
 	sliderCorner.CornerRadius = UDim.new(1, 0)
 	sliderCorner.Parent = sliderBg
 
-	-- Фиолетовая плашка
 	local fill = Instance.new("Frame")
 	fill.Parent = sliderBg
 	fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
@@ -658,6 +656,8 @@ local function AddSlider(parent, layout, text, min, max, default, callback)
 	end)
 
 	UpdateFromPercent((default - min) / (max - min))
+	task.wait(0.05)
+	RefreshCanvas()  -- 👈 КЛЮЧЕВОЕ
 	return frame
 end
 
