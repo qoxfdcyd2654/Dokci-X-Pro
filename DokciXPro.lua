@@ -322,6 +322,15 @@ MainFrame.InputBegan:Connect(function(input)
 		local mousePos = input.Position
 		dragStartMouse = Vector2.new(mousePos.X, mousePos.Y)
 		dragStartPos = MainFrame.Position
+		local target = LP:GetMouse().Target
+
+		if target and target:IsA("TextButton") then
+            return
+        end
+
+		if target and target:IsA("Frame") and target.Parent and target.Parent:FindFirstChild("sliderBg") then
+            return
+        end
 
 		if dragConn then dragConn:Disconnect() end
 		dragConn = RunService.RenderStepped:Connect(function()
