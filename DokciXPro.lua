@@ -652,7 +652,6 @@ local function AddSlider(parent, layout, text, min, max, default, callback)
 -- Клик по фону слайдера
 sliderBg.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        input.StopPropagation()  -- 👈 НЕ ДАЁМ СОБЫТИЮ ИДТИ ДАЛЬШЕ
         dragging = true
         UpdateFromMouse(input.Position.X)
     end
