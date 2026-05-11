@@ -533,23 +533,25 @@ local function AddToggle(parent, layout, text, callback)
 		end
 	end
 
+	-- Ручка (TextButton) — клик работает
 	switchThumb.MouseButton1Click:Connect(function()
 		state = not state
 		UpdateSwitch(true)
 		callback(state)
 	end)
 	
-switchBg.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		state = not state
-		UpdateSwitch(true)
-		callback(state)
-	end
-end)
+	-- Фон (Frame) — используем InputBegan
+	switchBg.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			state = not state
+			UpdateSwitch(true)
+			callback(state)
+		end
+	end)
 
 	callback(false)
 	task.wait(0.05)
-	RefreshCanvas()  -- 👈 КЛЮЧЕВОЕ
+	RefreshCanvas()
 	return frame
 end
 
