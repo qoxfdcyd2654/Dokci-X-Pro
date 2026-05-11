@@ -466,6 +466,9 @@ local function CreateTab(name, icon)
 	end)
 
 	table.insert(tabs, {btn = btn, content = content, layout = contentInner})
+
+	task.wait(0.1)
+RefreshCanvas()
 	return content, contentInner
 end
 
@@ -494,8 +497,8 @@ local function AddToggle(parent, layout, text, callback)
 	-- Фон переключателя
 	local switchBg = Instance.new("Frame")
 	switchBg.Parent = frame
-	switchBg.Size = UDim2.new(0, 72, 0, 32)
-	switchBg.Position = UDim2.new(1, -88, 0, 10)
+	switchBg.Size = UDim2.new(0, 56, 0, 24)
+	switchBg.Position = UDim2.new(1, -72, 0, 14)
 	switchBg.BackgroundColor3 = Colors.Danger
 	switchBg.BorderSizePixel = 0
 	local switchBgCorner = Instance.new("UICorner")
@@ -505,7 +508,7 @@ local function AddToggle(parent, layout, text, callback)
 	-- Круглая ручка
 	local switchThumb = Instance.new("TextButton")
 	switchThumb.Parent = switchBg
-	switchThumb.Size = UDim2.new(0, 28, 0, 28)
+	switchThumb.Size = UDim2.new(0, 20, 0, 20)
 	switchThumb.Position = UDim2.new(0, 2, 0, 2)
 	switchThumb.Text = ""
 	switchThumb.BackgroundColor3 = Colors.Text
@@ -517,7 +520,7 @@ local function AddToggle(parent, layout, text, callback)
 	local state = false
 	
 	local function UpdateSwitch(animated)
-		local targetPos = state and 42 or 2
+		local targetPos = state and 32 or 2
 		local targetColor = state and Colors.Accent or Colors.Danger
 		
 		if animated then
@@ -785,8 +788,6 @@ AddButton(utils, utilsLayout, "Rejoin (Teleport)", function()
 	game:GetService("TeleportService"):Teleport(game.PlaceId, LP)
 end)
 
-task.wait(0.05)
-RefreshCanvas()
 
 -- Активируем первую вкладку
 if tabs[1] then
