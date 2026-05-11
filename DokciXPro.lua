@@ -785,6 +785,9 @@ AddButton(utils, utilsLayout, "Rejoin (Teleport)", function()
 	game:GetService("TeleportService"):Teleport(game.PlaceId, LP)
 end)
 
+task.wait(0.05)
+RefreshCanvas()
+
 -- Активируем первую вкладку
 if tabs[1] then
 	tabs[1].content.Visible = true
