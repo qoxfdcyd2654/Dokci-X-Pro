@@ -41,7 +41,11 @@ local Config = {
 	AutoFarm = false,
 	Aimbot = false,
 	AimbotSmooth = 0.3,
+	ItemEsp = false,
+	ItemEspFolder = nil,
+	XRayToggle = false,
 }
+local ItemEspConnection = nil
 
 -- ========== ВСПОМОГАТЕЛЬНЫЕ ==========
 local function GetChar() return LP.Character end
@@ -311,6 +315,104 @@ end)
 CloseBtn.MouseButton1Click:Connect(function()
 	AnimateMenu(false)
 end)
+
+local function ItemsESP(state)
+	Config.ItemEsp = state
+
+	if state then
+		-- Удаляем старую папку, если была
+		if Config.ItemEspFolder then
+			Config.ItemEspFolder:Destroy()
+			Config.ItemEspFolder = nil
+		end
+
+		-- СОЗДАЁМ ОДНУ ПАПКУ ДЛЯ ВСЕХ ПРЕДМЕТОВ
+		local ESPItemFolder = Instance.new("Folder")
+		ESPItemFolder.Name = "DXP_ESPItem"
+		ESPItemFolder.Parent = CoreGui
+		Config.ItemEspFolder = ESPItemFolder
+
+		for _, item in pairs(workspace:GetDescendants()) do
+			if item:IsA("Tool") then
+				local hl = Instance.new("Highlight")
+				hl.FillColor = Colors.Accent
+				hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+				hl.FillTransparency = 0.6
+				hl.Adornee = item
+				hl.Parent = ESPItemFolder
+			end
+		end
+
+		-- Следим за новыми предметами
+		local function onDescendantAdded(desc)
+			if desc:IsA("Tool") then
+				local hl = Instance.new("Highlight")
+				hl.FillColor = Colors.Accent
+				hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+				hl.FillTransparency = 0.6
+				hl.Adornee = desc
+				hl.Parent = ESPItemFolder
+			end
+		end
+
+		workspace.DescendantAdded:Connect(onDescendantAdded)
+
+	else
+		-- Выключаем ESP
+		if Config.ItemEspFolder then
+			Config.ItemEspFolder:Destroy()
+			Config.ItemEspFolder = nil
+		end
+	end
+end
+
+local XRaySavedTransparencies = {}
+local XRayConnection = nil
+
+local function ToggleXRay(state)
+	Config.XRay = state
+
+	if state then
+		-- Сохраняем и изменяем существующие части
+		for _, part in pairs(workspace:GetDescendants()) do
+			if part:IsA("BasePart") and part.Transparency < 1 then
+				-- Сохраняем оригинал ДО изменения
+				table.insert(XRaySavedTransparencies, {
+					part = part,
+					original = part.Transparency
+				})
+				part.Transparency = 0.7
+			end
+		end
+
+		-- Следим за новыми частями
+		XRayConnection = workspace.DescendantAdded:Connect(function(desc)
+			if desc:IsA("BasePart") and desc.Transparency < 1 then
+				table.insert(XRaySavedTransparencies, {
+					part = desc,
+					original = desc.Transparency
+				})
+				desc.Transparency = 0.7
+			end
+		end)
+
+	else
+		-- Восстанавливаем прозрачность
+		for _, data in ipairs(XRaySavedTransparencies) do
+			if data.part then
+				data.part.Transparency = data.original
+			end
+		end
+		-- Очищаем таблицу
+		table.clear(XRaySavedTransparencies)
+
+		-- Отключаем слежение
+		if XRayConnection then
+			XRayConnection:Disconnect()
+			XRayConnection = nil
+		end
+	end
+end
 
 -- ========== ПЛАВНОЕ ПЕРЕТАСКИВАНИЕ ==========
 local dragConn = nil
@@ -786,6 +888,8 @@ AddSlider(move, moveLayout, "Jump Power", 50, 300, 50, function(v) Config.JumpPo
 AddToggle(visuals, visualsLayout, "ESP", ToggleESP)
 AddToggle(visuals, visualsLayout, "Invisible", ToggleInvisible)
 AddToggle(visuals, visualsLayout, "Fullbright", ToggleFullbright)
+AddToggle(visuals, visualsLayout, "Items Esp", ItemsESP)
+AddToggle(visuals, visualsLayout, "XRay", ToggleXRay)
 
 AddButton(utils, utilsLayout, "Rejoin (Teleport)", function()
 	game:GetService("TeleportService"):Teleport(game.PlaceId, LP)
