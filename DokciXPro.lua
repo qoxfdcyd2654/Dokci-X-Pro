@@ -29,6 +29,7 @@ local Colors = {
 
 -- ========== КОНФИГ ==========
 local Config = {
+	HubVersion = 5.0,
 	Noclip = false,
 	Fly = false,
 	FlySpeed = 150,
@@ -248,7 +249,7 @@ local Subtitle = Instance.new("TextLabel")
 Subtitle.Parent = TopBar
 Subtitle.Size = UDim2.new(0.5, 0, 1, 0)
 Subtitle.Position = UDim2.new(0, 20, 0, 17)
-Subtitle.Text = "by Dokci  •  v5.0  •  cyber edition •  2026"
+Subtitle.Text = "by Dokci  •  " .. Config.HubVersion .. "  •  cyber edition •  2026"
 Subtitle.TextColor3 = Colors.TextDim
 Subtitle.Font = Enum.Font.GothamMedium
 Subtitle.TextSize = 11
@@ -904,7 +905,7 @@ if tabs[1] then
 end
 
 print("========================================")
-print("💀 DXP DOKCI X PRO v4.1 ЗАГРУЖЕН 💀")
+print("💀 DXP DOKCI X PRO v" .. Config.HubVersion .. " ЗАГРУЖЕН 💀")
 print("🔥 Кнопка ⚡ в левом верхнем углу — открыть меню")
 print("✅ Все ошибки исправлены!")
 print("========================================")
